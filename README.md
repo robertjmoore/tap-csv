@@ -1,4 +1,4 @@
-# tap-shippo
+# tap-csv
 
 A [Singer](https://singer.io) tap for extracting data from a CSV file.
 
