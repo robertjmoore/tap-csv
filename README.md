@@ -39,16 +39,18 @@ python tap_csv.py -c config.json
 
 ```
 
-Where `config.json` contains an array of local filepaths to be ingested.
+Where `config.json` contains an array of local filepaths to be ingested and the column(s) that uniquely identify a record.
 
 ```json
 {
 	"files":	[ 	
 					{	"entity" : "leads",
-						"file" : "/path/to/leads.csv" 
+						"file" : "/path/to/leads.csv",
+						"keys" : ["Id"]
 					},
 					{	"entity" : "opportunities",
-						"file" : "/path/to/opportunities.csv" 
+						"file" : "/path/to/opportunities.csv",
+						"keys" : ["Id"]
 					}
 				]
 }
@@ -58,6 +60,4 @@ and `state.json` is a file containing only the value of the last state
 message, which again is moot for this tap because it is only run on
 individual files a single time.
 
----
 
-Copyright &copy; 2017 Stitch
