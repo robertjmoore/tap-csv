@@ -3,8 +3,7 @@
 import singer
 import csv
 import sys
-
-from tap_csv import utils
+import argparse
 
 
 REQUIRED_CONFIG_KEYS = ['files']
@@ -46,6 +45,22 @@ def sync_file(fileInfo):
 
     singer.write_state(STATE) #moot instruction, state always empty
 
+def parse_args(required_config_keys):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--config', help='Config file', required=True)
+    parser.add_argument('-s', '--state', help='State file')
+    args = parser.parse_args()
+
+    config = load_json(args.config)
+    check_config(config, required_config_keys)
+
+    if args.state:
+        state = load_json(args.state)
+    else:
+        state = {}
+
+    return config, state
+
 
 def do_sync():
     logger.info("Starting sync")
@@ -55,7 +70,7 @@ def do_sync():
 
 
 def main():
-    config, state = utils.parse_args(REQUIRED_CONFIG_KEYS)
+    config, state = parse_args(REQUIRED_CONFIG_KEYS)
     CONFIG.update(config)
     STATE.update(state)
     do_sync()
