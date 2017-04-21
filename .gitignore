@@ -97,3 +97,4 @@ env.sh
 config.json
 state.json
 .autoenv.zsh
+files/

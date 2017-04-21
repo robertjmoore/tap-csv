@@ -4,6 +4,7 @@ import singer
 import csv
 import sys
 import argparse
+import json
 
 
 REQUIRED_CONFIG_KEYS = ['files']
@@ -12,17 +13,20 @@ CONFIG = {}
 
 logger = singer.get_logger()
 
-def write_schema_from_header(entity, header):
+def write_schema_from_header(entity, header, keys):
     schema =    {
                     "type": "object",
                     "properties": {}
                 }
     header_map = []
     for column in header:
-        schema["properties"][column] = {"type": "string" } #TODO: intelligent type detection
+        #for now everything is a string; ideas for later:
+        #1. intelligently detect data types based on a sampling of entries from the raw data
+        #2. by default everything is a string, but allow entries in config.json to hard-type columns by name
+        schema["properties"][column] = {"type": "string" } 
         header_map.append(column)
 
-    singer.write_schema(entity, schema, []) #no key/required properties
+    singer.write_schema(entity, schema, keys) 
 
     return header_map
 
@@ -31,11 +35,12 @@ def sync_file(fileInfo):
     logger.info("Syncing entity '" + fileInfo["entity"] + "' from file: '" + fileInfo["file"] + "'")
 
     with open(fileInfo["file"], "r") as f:
+        cache = [] #we'll read 1,000 rows at a time in the cache before writing; gives us a sample for data type detection
         needsHeader = True
         reader = csv.reader(f)
         for row in reader:
             if(needsHeader):
-                header_map = write_schema_from_header(fileInfo["entity"], row)
+                header_map = write_schema_from_header(fileInfo["entity"], row, fileInfo["keys"])
                 needsHeader = False
             else:
                 record = {}
@@ -60,6 +65,15 @@ def parse_args(required_config_keys):
         state = {}
 
     return config, state
+
+def load_json(path):
+    with open(path) as f:
+        return json.load(f)
+
+def check_config(config, required_keys):
+    missing_keys = [key for key in required_keys if key not in config]
+    if missing_keys:
+        raise Exception("Config is missing required keys: {}".format(missing_keys))
 
 
 def do_sync():
