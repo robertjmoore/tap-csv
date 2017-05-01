@@ -35,7 +35,6 @@ def sync_file(fileInfo):
     logger.info("Syncing entity '" + fileInfo["entity"] + "' from file: '" + fileInfo["file"] + "'")
 
     with open(fileInfo["file"], "r") as f:
-        cache = [] #we'll read 1,000 rows at a time in the cache before writing; gives us a sample for data type detection
         needsHeader = True
         reader = csv.reader(f)
         for row in reader:
