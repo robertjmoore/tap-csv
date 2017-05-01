@@ -39,7 +39,12 @@ python tap_csv.py -c config.json
 
 ```
 
-Where `config.json` contains an array of local filepaths to be ingested and the column(s) that uniquely identify a record.
+Where `config.json` contains an array called `files` that consists of dictionary objects detailing each destination table to be passed to Singer. Each of those entries contains: 
+* `entity`: The entity name to be passed to singer (i.e. the table)
+* `path`: Local path to the file to be ingested. Note that this may be a directory, in which case all files in that directory and any of its subdirectories will be recursively processed
+* `keys`: The names of the columns that constitute the unique keys for that entity
+
+Example:
 
 ```json
 {

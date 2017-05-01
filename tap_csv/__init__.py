@@ -5,6 +5,8 @@ import csv
 import sys
 import argparse
 import json
+import os
+import copy
 
 
 REQUIRED_CONFIG_KEYS = ['files']
@@ -30,10 +32,24 @@ def write_schema_from_header(entity, header, keys):
 
     return header_map
 
+def process_file(fileInfo):
+    #determines if file in question is a file or directory and processes accordingly
+    if os.path.isdir(fileInfo["file"]):
+        fileInfo["file"] = os.path.normpath(fileInfo["file"]) + os.sep #ensures directories end with trailing slash
+        logger.info("Syncing all CSV files in directory '" + fileInfo["file"] + "' recursively")
+        for filename in os.listdir(fileInfo["file"]):
+            subInfo = copy.deepcopy(fileInfo)
+            subInfo["file"] = fileInfo["file"] + filename
+            process_file(subInfo) #recursive call
+    else: 
+        sync_file(fileInfo)
 
 def sync_file(fileInfo):
-    logger.info("Syncing entity '" + fileInfo["entity"] + "' from file: '" + fileInfo["file"] + "'")
+    if fileInfo["file"][-4:] != ".csv":
+        logger.info("Skipping non-csv file '" + fileInfo["file"] + "'")
+        return
 
+    logger.info("Syncing entity '" + fileInfo["entity"] + "' from file: '" + fileInfo["file"] + "'")
     with open(fileInfo["file"], "r") as f:
         needsHeader = True
         reader = csv.reader(f)
@@ -78,7 +94,7 @@ def check_config(config, required_keys):
 def do_sync():
     logger.info("Starting sync")
     for fileInfo in CONFIG['files']:
-        sync_file(fileInfo)
+        process_file(fileInfo)
     logger.info("Sync completed")
 
 
