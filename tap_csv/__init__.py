@@ -34,6 +34,9 @@ def write_schema_from_header(entity, header, keys):
 
 def process_file(fileInfo):
     #determines if file in question is a file or directory and processes accordingly
+    if not os.path.exists(fileInfo["file"]):
+        logger.info("Directory " + fileInfo["file"] + " does not exist, skipping")
+        return
     if os.path.isdir(fileInfo["file"]):
         fileInfo["file"] = os.path.normpath(fileInfo["file"]) + os.sep #ensures directories end with trailing slash
         logger.info("Syncing all CSV files in directory '" + fileInfo["file"] + "' recursively")
@@ -61,7 +64,8 @@ def sync_file(fileInfo):
                 record = {}
                 for index, column in enumerate(row):
                     record[header_map[index]] = column
-                singer.write_record(fileInfo["entity"], record)
+                if len(record) > 0: #skip empty lines
+                    singer.write_record(fileInfo["entity"], record)
 
     singer.write_state(STATE) #moot instruction, state always empty
 
